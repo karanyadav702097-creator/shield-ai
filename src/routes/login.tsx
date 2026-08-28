@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export const Route = createFileRoute("/login")({
+  validateSearch: (search: Record<string, unknown>): { unauthorized?: true } =>
+    search.unauthorized === true || search.unauthorized === "true" ? { unauthorized: true } : {},
   head: () => ({
     meta: [
       { title: "Admin Login — FraudShield AI" },
@@ -28,10 +30,17 @@ export const Route = createFileRoute("/login")({
 
 function LoginPage() {
   const navigate = useNavigate();
+  const { unauthorized } = Route.useSearch();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (unauthorized) {
+      toast.error("That account doesn't have admin access.");
+    }
+  }, [unauthorized]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
